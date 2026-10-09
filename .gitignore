@@ -36,3 +36,10 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Track the official PyInstaller build specification
+!SuccessFactorsWeeklyTrainingReport.spec
+
+# Local diagnostic files
+GSF_Diagnostic.txt
+GSF_Diagnostic/
