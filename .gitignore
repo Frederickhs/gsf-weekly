@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual*environment*.venv/
+venv/
+
+# Application*inputs*and generated files
+Input/*
+!Input/.gitkeep
+
+Output/*
+!Output/.gitkeep
+
+Archive/*
+!Archive/.gitkeep
+
+Logs/*
+!Logs/.gitkeep
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Excel temporary files
+~$*.xlsx
+~$*.xlsm
+~$*.xls
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
