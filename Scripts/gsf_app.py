@@ -9,7 +9,7 @@ from input_scanner import FilterResults, WorkbookStructure, inspect_workbook, sc
 from report_generator import generate_report, open_output
 
 
-APP_TITLE = "Learning Weekly Training Report"
+APP_TITLE = "Success Factors Weekly Training Report"
 WINDOW_SIZE = "980x720"
 SUPPORTED_FILE_TYPES = [
     ("Excel workbooks", "*.xlsx *.xlsm"),

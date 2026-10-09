@@ -1,6 +1,5 @@
 @echo off
 setlocal
-
 cd /d "%~dp0"
 
 if not exist ".venv\Scripts\python.exe" (
@@ -20,6 +19,5 @@ if not exist "Scripts\gsf_app.py" (
     exit /b 1
 )
 
-start "Learning Weekly Training Report" ".venv\Scripts\pythonw.exe" "Scripts\gsf_app.py"
-
+start "Success Factors Weekly Training Report" ".venv\Scripts\pythonw.exe" "Scripts\gsf_app.py"
 endlocal

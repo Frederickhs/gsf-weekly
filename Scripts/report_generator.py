@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
@@ -16,7 +17,11 @@ from openpyxl.worksheet.dimensions import ColumnDimension
 from input_scanner import WorkbookStructure, cell_value, clean_text
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = (
+    Path(sys.executable).resolve().parent
+    if getattr(sys, "frozen", False)
+    else Path(__file__).resolve().parent.parent
+)
 OUTPUT_FOLDER = PROJECT_ROOT / "Output"
 ARCHIVE_FOLDER = PROJECT_ROOT / "Archive"
 DUE_SOON_DAYS = 15
@@ -293,7 +298,7 @@ def create_summary_sheet(
 
     style_title(
         ws,
-        "Learning Weekly Training Report",
+        "Success Factors Weekly Training Report",
         f"Park: {park} | Department: {department} | Generated: {generated_at:%m/%d/%Y %I:%M %p}",
         6,
     )
@@ -491,7 +496,7 @@ def generate_report(
     archive_existing_output(target_folder)
     target_folder.mkdir(parents=True, exist_ok=True)
 
-    filename = f"Learning Weekly Training Report {generated_at:%Y-%m-%d_%H%M%S}.xlsx"
+    filename = f"Success Factors Weekly Training Report {generated_at:%Y-%m-%d_%H%M%S}.xlsx"
     output_path = target_folder / filename
 
     workbook = Workbook()

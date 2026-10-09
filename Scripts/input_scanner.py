@@ -7,7 +7,11 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = (
+    Path(sys.executable).resolve().parent
+    if getattr(sys, "frozen", False)
+    else Path(__file__).resolve().parent.parent
+)
 INPUT_FOLDER = PROJECT_ROOT / "Input"
 SUPPORTED_EXTENSIONS = {".xlsx", ".xlsm"}
 
@@ -326,7 +330,7 @@ def print_filter_summary(results: FilterResults) -> None:
 
 
 def main() -> int:
-    print_heading("LEARNING WEEKLY TRAINING REPORT - INPUT SCANNER")
+    print_heading("SUCCESS FACTORS WEEKLY TRAINING REPORT - INPUT SCANNER")
 
     workbooks = find_input_workbooks(INPUT_FOLDER)
     if not workbooks:
