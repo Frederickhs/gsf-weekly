@@ -43,3 +43,9 @@ desktop.ini
 # Local diagnostic files
 GSF_Diagnostic.txt
 GSF_Diagnostic/
+
+# Track the official macOS PyInstaller specification
+!Packaging/macOS/SuccessFactorsWeeklyTrainingReport-macOS.spec
+
+# macOS files
+.DS_Store
