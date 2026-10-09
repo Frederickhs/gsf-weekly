@@ -15,13 +15,10 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.dimensions import ColumnDimension
 
 from input_scanner import WorkbookStructure, cell_value, clean_text
+from platform_utils import ensure_app_folders, open_path
 
 
-PROJECT_ROOT = (
-    Path(sys.executable).resolve().parent
-    if getattr(sys, "frozen", False)
-    else Path(__file__).resolve().parent.parent
-)
+PROJECT_ROOT = ensure_app_folders(__file__)
 OUTPUT_FOLDER = PROJECT_ROOT / "Output"
 ARCHIVE_FOLDER = PROJECT_ROOT / "Archive"
 DUE_SOON_DAYS = 15
@@ -542,5 +539,4 @@ def generate_report(
 
 
 def open_output(path: Path) -> None:
-    if hasattr(os, "startfile"):
-        os.startfile(path)  # type: ignore[attr-defined]
+    open_path(path)

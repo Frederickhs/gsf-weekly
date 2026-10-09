@@ -6,12 +6,10 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
+from platform_utils import get_project_root
 
-PROJECT_ROOT = (
-    Path(sys.executable).resolve().parent
-    if getattr(sys, "frozen", False)
-    else Path(__file__).resolve().parent.parent
-)
+
+PROJECT_ROOT = get_project_root(__file__)
 INPUT_FOLDER = PROJECT_ROOT / "Input"
 SUPPORTED_EXTENSIONS = {".xlsx", ".xlsm"}
 
