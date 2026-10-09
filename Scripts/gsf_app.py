@@ -6,9 +6,10 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from input_scanner import FilterResults, WorkbookStructure, inspect_workbook, scan_filters
+from report_generator import generate_report, open_output
 
 
-APP_TITLE = "Generic SF Weekly Report"
+APP_TITLE = "Learning Weekly Training Report"
 WINDOW_SIZE = "980x720"
 SUPPORTED_FILE_TYPES = [
     ("Excel workbooks", "*.xlsx *.xlsm"),
@@ -76,9 +77,7 @@ class GSFWeeklyApp(tk.Tk):
         self.file_entry = ttk.Entry(file_frame, textvariable=self.file_var, state="readonly")
         self.file_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
         self.browse_button = ttk.Button(file_frame, text="Browse...", command=self._browse_file)
-        self.browse_button.grid(row=0, column=1, padx=(0, 8))
-        self.load_button = ttk.Button(file_frame, text="Load Report", command=self._start_scan)
-        self.load_button.grid(row=0, column=2)
+        self.browse_button.grid(row=0, column=1)
 
         filter_frame = ttk.LabelFrame(
             container,
@@ -116,11 +115,12 @@ class GSFWeeklyApp(tk.Tk):
             style="Section.TLabelframe",
         )
         org_frame.pack(fill="both", expand=True, pady=(14, 0))
-        org_frame.columnconfigure(0, weight=1)
+        org_frame.columnconfigure(0, weight=3)
+        org_frame.columnconfigure(1, weight=2)
         org_frame.rowconfigure(2, weight=1)
 
         search_row = ttk.Frame(org_frame)
-        search_row.grid(row=0, column=0, columnspan=2, sticky="ew")
+        search_row.grid(row=0, column=0, sticky="ew", padx=(0, 10))
         search_row.columnconfigure(0, weight=1)
 
         self.search_entry = ttk.Entry(
@@ -147,8 +147,15 @@ class GSFWeeklyApp(tk.Tk):
         )
         self.clear_button.grid(row=0, column=2, rowspan=2)
 
+        ttk.Label(org_frame, text="Available Organizations / Venues").grid(
+            row=1, column=0, sticky="w", pady=(10, 0)
+        )
+        ttk.Label(org_frame, text="Selected").grid(
+            row=1, column=1, sticky="w", padx=(10, 0), pady=(10, 0)
+        )
+
         list_frame = ttk.Frame(org_frame)
-        list_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", pady=(10, 8))
+        list_frame.grid(row=2, column=0, sticky="nsew", padx=(0, 10), pady=(4, 8))
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
 
@@ -162,11 +169,35 @@ class GSFWeeklyApp(tk.Tk):
             relief="solid",
         )
         self.org_listbox.grid(row=0, column=0, sticky="nsew")
-        self.org_listbox.bind("<<ListboxSelect>>", self._on_listbox_selection)
+        self.org_listbox.bind("<Button-1>", self._toggle_organization)
+        self.org_listbox.bind("<space>", self._toggle_focused_organization)
 
         scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.org_listbox.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.org_listbox.configure(yscrollcommand=scrollbar.set)
+
+        selected_frame = ttk.Frame(org_frame)
+        selected_frame.grid(row=2, column=1, sticky="nsew", padx=(10, 0), pady=(4, 8))
+        selected_frame.columnconfigure(0, weight=1)
+        selected_frame.rowconfigure(0, weight=1)
+
+        self.selected_listbox = tk.Listbox(
+            selected_frame,
+            exportselection=False,
+            font=("Segoe UI", 10),
+            activestyle="none",
+            borderwidth=1,
+            relief="solid",
+            background="#F3F8FC",
+        )
+        self.selected_listbox.grid(row=0, column=0, sticky="nsew")
+        self.selected_listbox.bind("<Double-Button-1>", self._remove_selected_organization)
+
+        selected_scrollbar = ttk.Scrollbar(
+            selected_frame, orient="vertical", command=self.selected_listbox.yview
+        )
+        selected_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.selected_listbox.configure(yscrollcommand=selected_scrollbar.set)
 
         counts = ttk.Frame(org_frame)
         counts.grid(row=3, column=0, columnspan=2, sticky="ew")
@@ -182,7 +213,7 @@ class GSFWeeklyApp(tk.Tk):
             footer,
             text="Generate Report",
             style="Primary.TButton",
-            command=self._show_selection_summary,
+            command=self._start_generation,
             state="disabled",
         )
         self.generate_button.grid(row=0, column=1, sticky="e")
@@ -261,11 +292,9 @@ class GSFWeeklyApp(tk.Tk):
         if busy:
             self.progress.start(10)
             self.browse_button.configure(state="disabled")
-            self.load_button.configure(state="disabled")
         else:
             self.progress.stop()
             self.browse_button.configure(state="normal")
-            self.load_button.configure(state="normal")
 
     def _on_park_selected(self, _event=None) -> None:
         if not self.results:
@@ -313,7 +342,6 @@ class GSFWeeklyApp(tk.Tk):
         )
 
     def _on_search_changed(self, *_args) -> None:
-        self._capture_visible_selection()
         self._refresh_org_listbox()
 
     def _visible_organizations(self) -> list[str]:
@@ -333,19 +361,65 @@ class GSFWeeklyApp(tk.Tk):
             if organization in self.selected_organizations:
                 self.org_listbox.selection_set(index)
 
-    def _capture_visible_selection(self) -> None:
-        visible = self._visible_organizations()
-        selected_indexes = set(self.org_listbox.curselection())
+        self._refresh_selected_listbox()
 
-        for index, organization in enumerate(visible):
-            if index in selected_indexes:
-                self.selected_organizations.add(organization)
-            else:
-                self.selected_organizations.discard(organization)
+    def _refresh_selected_listbox(self) -> None:
+        self.selected_listbox.delete(0, tk.END)
+        for organization in sorted(self.selected_organizations):
+            self.selected_listbox.insert(tk.END, organization)
 
-    def _on_listbox_selection(self, _event=None) -> None:
-        self._capture_visible_selection()
+    def _remove_selected_organization(self, event) -> str:
+        if self.selected_listbox.size() == 0:
+            return "break"
+
+        index = self.selected_listbox.nearest(event.y)
+        bbox = self.selected_listbox.bbox(index)
+        if not bbox or not (bbox[1] <= event.y <= bbox[1] + bbox[3]):
+            return "break"
+
+        organization = self.selected_listbox.get(index)
+        self.selected_organizations.discard(organization)
+        self._refresh_org_listbox()
         self._update_counts()
+        return "break"
+
+    def _toggle_organization(self, event) -> str:
+        if self.org_listbox.size() == 0:
+            return "break"
+
+        index = self.org_listbox.nearest(event.y)
+        bbox = self.org_listbox.bbox(index)
+        if not bbox or not (bbox[1] <= event.y <= bbox[1] + bbox[3]):
+            return "break"
+
+        organization = self.org_listbox.get(index)
+        if organization in self.selected_organizations:
+            self.selected_organizations.remove(organization)
+        else:
+            self.selected_organizations.add(organization)
+
+        self._refresh_org_listbox()
+        self.org_listbox.activate(index)
+        self.org_listbox.see(index)
+        self._update_counts()
+        return "break"
+
+    def _toggle_focused_organization(self, _event=None) -> str:
+        if self.org_listbox.size() == 0:
+            return "break"
+
+        index = self.org_listbox.index(tk.ACTIVE)
+        organization = self.org_listbox.get(index)
+        if organization in self.selected_organizations:
+            self.selected_organizations.remove(organization)
+        else:
+            self.selected_organizations.add(organization)
+
+        self._refresh_org_listbox()
+        self.org_listbox.activate(index)
+        self.org_listbox.see(index)
+        self._update_counts()
+        return "break"
 
     def _select_all_displayed(self) -> None:
         visible = self._visible_organizations()
@@ -376,6 +450,7 @@ class GSFWeeklyApp(tk.Tk):
         return employees
 
     def _update_counts(self) -> None:
+        self._refresh_selected_listbox()
         employee_count = len(self._selected_employee_ids())
         organization_count = len(self.selected_organizations)
         self.org_count_var.set(f"Organizations selected: {organization_count}")
@@ -384,28 +459,70 @@ class GSFWeeklyApp(tk.Tk):
             state="normal" if organization_count else "disabled"
         )
 
-    def _show_selection_summary(self) -> None:
-        self._capture_visible_selection()
+    def _start_generation(self) -> None:
         self._update_counts()
 
-        if not self.selected_organizations:
+        if not self.selected_organizations or not self.structure:
             messagebox.showwarning(APP_TITLE, "Select at least one organization.")
             return
 
-        organizations = "\n".join(
-            f"- {value}" for value in sorted(self.selected_organizations)
+        self._set_busy(True)
+        self.generate_button.configure(state="disabled")
+        self.status_var.set("Generating Excel report...")
+        thread = threading.Thread(
+            target=self._generation_worker,
+            args=(
+                self.structure,
+                self.park_var.get(),
+                self.department_var.get(),
+                set(self.selected_organizations),
+            ),
+            daemon=True,
         )
-        employee_count = len(self._selected_employee_ids())
+        thread.start()
 
-        messagebox.showinfo(
+    def _generation_worker(
+        self,
+        structure: WorkbookStructure,
+        park: str,
+        department: str,
+        organizations: set[str],
+    ) -> None:
+        try:
+            result = generate_report(
+                structure=structure,
+                park=park,
+                department=department,
+                selected_organizations=organizations,
+            )
+        except Exception as exc:
+            self.after(0, self._generation_failed, str(exc))
+            return
+
+        self.after(0, self._generation_complete, result)
+
+    def _generation_failed(self, error_text: str) -> None:
+        self._set_busy(False)
+        self._update_counts()
+        self.status_var.set("Unable to generate the Excel report.")
+        messagebox.showerror(APP_TITLE, error_text)
+
+    def _generation_complete(self, result) -> None:
+        self._set_busy(False)
+        self._update_counts()
+        self.status_var.set(f"Report created: {result.output_path.name}")
+
+        open_file = messagebox.askyesno(
             APP_TITLE,
-            "Selections are ready for report generation.\n\n"
-            f"Park: {self.park_var.get()}\n"
-            f"Department: {self.department_var.get()}\n"
-            f"Unique employees: {employee_count}\n\n"
-            f"Organizations:\n{organizations}\n\n"
-            "The Excel report generator is the next project checkpoint.",
+            "Report created successfully.\n\n"
+            f"Organizations: {result.organization_count}\n"
+            f"Unique employees: {result.employee_count}\n"
+            f"Action items: {result.action_item_count}\n\n"
+            f"Saved to:\n{result.output_path}\n\n"
+            "Open the Excel report now?",
         )
+        if open_file:
+            open_output(result.output_path)
 
 
 def main() -> None:

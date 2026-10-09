@@ -20,6 +20,8 @@ REQUIRED_COLUMNS = {
         "labor id",
         "laborid",
     },
+    "first_name": {"first name", "first name ", "f.name", "firstname"},
+    "last_name": {"last name", "last name ", "l.name", "lastname"},
     "display_name": {
         "display name",
         "employee name",
@@ -145,7 +147,15 @@ def inspect_worksheet_headers(
         return None
 
     header_row, columns, actual_headers = best_result
-    minimum_required = set(REQUIRED_COLUMNS)
+    minimum_required = {
+        "employee_id",
+        "display_name",
+        "item_title",
+        "days_until_due",
+        "park_description",
+        "org_description",
+        "department",
+    }
 
     if not minimum_required.issubset(columns):
         return None
@@ -316,7 +326,7 @@ def print_filter_summary(results: FilterResults) -> None:
 
 
 def main() -> int:
-    print_heading("GENERIC SF WEEKLY REPORT - INPUT SCANNER")
+    print_heading("LEARNING WEEKLY TRAINING REPORT - INPUT SCANNER")
 
     workbooks = find_input_workbooks(INPUT_FOLDER)
     if not workbooks:
