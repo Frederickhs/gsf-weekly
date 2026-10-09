@@ -23,7 +23,7 @@ class GSFWeeklyApp(tk.Tk):
         super().__init__()
         self.title(APP_TITLE)
         self.geometry(WINDOW_SIZE)
-        self.minsize(860, 620)
+        self.minsize(980, 720)
 
         self.structure: WorkbookStructure | None = None
         self.results: FilterResults | None = None
