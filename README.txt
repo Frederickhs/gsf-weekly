@@ -1,5 +1,5 @@
 SUCCESS FACTORS WEEKLY TRAINING REPORT
-Version 0.1.0
+Version 0.2.0
 
 PURPOSE
 This application creates a weekly training workbook from a Success Factors Weekly Training Excel report.
@@ -13,6 +13,13 @@ HOW TO USE
 6. Review the Selected list and unique employee count.
 7. Click Generate Report.
 8. Choose whether to open the completed Excel workbook.
+
+SEARCH SSO
+1. Load a Weekly Training workbook.
+2. Click Search SSO.
+3. Enter an SSO / Employee ID and click Search or press Enter.
+4. Review the technician, organization details, overall status, and pending items.
+5. Search SSO checks the entire loaded workbook and does not depend on the selected report filters.
 
 REPORT CONTENTS
 - Summary worksheet

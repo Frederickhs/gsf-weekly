@@ -16,6 +16,25 @@ The project follows [Semantic Versioning](https://semver.org/):
 - Record issues, usability feedback, and enhancement requests from testing.
 - Promote the application to version `1.0.0` after successful external validation.
 
+## [0.2.0] - 2026-10-09
+
+### Added
+
+- Added a **Search SSO** utility that becomes available after a Weekly Training workbook is loaded.
+- Added employee lookup across the entire loaded workbook, independent of the selected Park, Department, or Organization filters.
+- Added employee details for Technician, SSO / Employee ID, Park, Department, and Organization / Venue.
+- Added an overall employee status using the existing 15-day rules.
+- Added a pending-training list showing Item Title, Days Until Due, Status, and Organization / Venue.
+- Added color-coded Good, Due Soon, and Overdue results.
+- Added duplicate suppression for identical pending-training results.
+- Added keyboard support so pressing Enter runs the SSO search.
+- Added a Not Found result for SSOs that do not exist in the loaded workbook.
+
+### Changed
+
+- Updated the application minimum window size to `980 x 720`.
+- Updated the EXE build workflow to archive the previous distribution folder before rebuilding.
+
 ## [0.1.0] - 2026-10-09
 
 ### Added

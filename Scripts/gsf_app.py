@@ -7,6 +7,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from input_scanner import FilterResults, WorkbookStructure, inspect_workbook, scan_filters
 from report_generator import generate_report, open_output
+from sso_search import SSOSearchWindow
 
 
 APP_TITLE = "Success Factors Weekly Training Report"
@@ -77,7 +78,15 @@ class GSFWeeklyApp(tk.Tk):
         self.file_entry = ttk.Entry(file_frame, textvariable=self.file_var, state="readonly")
         self.file_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
         self.browse_button = ttk.Button(file_frame, text="Browse...", command=self._browse_file)
-        self.browse_button.grid(row=0, column=1)
+        self.browse_button.grid(row=0, column=1, padx=(0, 8))
+
+        self.search_sso_button = ttk.Button(
+            file_frame,
+            text="Search SSO",
+            command=self._open_sso_search,
+            state="disabled",
+        )
+        self.search_sso_button.grid(row=0, column=2)
 
         filter_frame = ttk.LabelFrame(
             container,
@@ -223,6 +232,16 @@ class GSFWeeklyApp(tk.Tk):
         self.progress = ttk.Progressbar(progress_frame, mode="indeterminate")
         self.progress.pack(fill="x")
 
+    def _open_sso_search(self) -> None:
+        if self.structure is None:
+            messagebox.showwarning(
+                APP_TITLE,
+                "Load a Weekly Training report before searching by SSO.",
+            )
+            return
+
+        SSOSearchWindow(self, self.structure)
+
     def _browse_file(self) -> None:
         selected = filedialog.askopenfilename(
             title="Select Weekly Training Report",
@@ -282,6 +301,7 @@ class GSFWeeklyApp(tk.Tk):
         self._refresh_org_listbox()
         self._update_counts()
         self._set_busy(False)
+        self.search_sso_button.configure(state="normal")
 
         self.status_var.set(
             f"Loaded {structure.file_path.name} | {results.total_data_rows:,} training rows | "
@@ -292,9 +312,13 @@ class GSFWeeklyApp(tk.Tk):
         if busy:
             self.progress.start(10)
             self.browse_button.configure(state="disabled")
+            self.search_sso_button.configure(state="disabled")
         else:
             self.progress.stop()
             self.browse_button.configure(state="normal")
+            self.search_sso_button.configure(
+                state="normal" if self.structure is not None else "disabled"
+            )
 
     def _on_park_selected(self, _event=None) -> None:
         if not self.results:
