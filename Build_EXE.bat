@@ -31,6 +31,7 @@ if not exist "%APPDIR%\Output" mkdir "%APPDIR%\Output"
 if not exist "%APPDIR%\Archive" mkdir "%APPDIR%\Archive"
 if not exist "%APPDIR%\Logs" mkdir "%APPDIR%\Logs"
 copy /y "VERSION.txt" "%APPDIR%\VERSION.txt" >nul
+copy /y "README.txt" "%APPDIR%\README.txt" >nul
 
 echo.
 echo BUILD COMPLETE.
